@@ -33,7 +33,6 @@ model Customer {
   status        CustomerStatus @default(LEAD)
   lastContactAt DateTime?
   notes         String?
-  // Manual ordering slot, reserved for drag-and-drop reordering of the list.
   position      Int            @default(0)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt

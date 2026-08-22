@@ -15,9 +15,6 @@ import {
 
 /**
  * Application shell for every authenticated route.
- *
- * The sidebar is a fixed column from md up and an off-canvas sheet below it,
- * so the same component serves both without duplicating the nav.
  */
 export function AppShell({
   user,

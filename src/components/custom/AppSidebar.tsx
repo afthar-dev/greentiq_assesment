@@ -47,9 +47,7 @@ export function AppSidebar({
         <span className="grid size-7 place-items-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
           C
         </span>
-        <span className="text-[15px] font-semibold tracking-tight">
-          CRM Dashboard
-        </span>
+        <span className="text-[15px] font-semibold tracking-tight">CRM</span>
       </Link>
 
       <nav className="flex flex-col gap-1">

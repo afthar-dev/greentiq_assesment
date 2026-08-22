@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CustomerTable } from "@/components/custom/CustomerTable";
 
 export const metadata: Metadata = {
   title: "Customers · CRM Dashboard",
@@ -16,14 +16,7 @@ export default function CustomersPage() {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Nothing here yet</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          The customer table, search and filter panel land in the next step.
-        </CardContent>
-      </Card>
+      <CustomerTable />
     </div>
   );
 }
