@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogOutIcon } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import { signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 
-export function SignOutButton() {
+export function SignOutButton({ className }: { className?: string }) {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
 
@@ -34,6 +35,7 @@ export function SignOutButton() {
       size="sm"
       onClick={handleSignOut}
       disabled={isPending}
+      className={cn(className)}
     >
       <LogOutIcon />
       {isPending ? "Signing out…" : "Sign out"}

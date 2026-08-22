@@ -12,7 +12,7 @@ const createPrismaClient = () => {
   const connectionString = process.env.DATABASE_URL;
 
   if (!connectionString) {
-    throw new Error("Database connection failed");
+    throw new Error("Database connection failed : DATABASE_URL is not set.");
   }
 
   return new PrismaClient({
