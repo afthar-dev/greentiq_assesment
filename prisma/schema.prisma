@@ -1,6 +1,11 @@
 // Prisma schema for the Advanced CRM Dashboard.
-// Two models: Customer (the CRM records) and SavedFilter (named filter
-// combinations, including the pre-built templates and their drag-and-drop order).
+//
+// Two independent halves:
+//   Domain — Customer (CRM records) and SavedFilter (named filter
+//            combinations, the pre-built templates, and their drag-and-drop
+//            order).
+//   Auth   — User, Session, Account and Verification, owned by Better Auth.
+//            Field names are dictated by the library, not chosen here.
 
 generator client {
   provider = "prisma-client-js"
@@ -88,6 +93,7 @@ model Session {
 
 model Account {
   id                    String    @id
+  issuer                String
   accountId             String
   providerId            String
   userId                String
@@ -102,6 +108,7 @@ model Account {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
+  @@unique([issuer, accountId])
   @@index([userId])
   @@map("account")
 }
