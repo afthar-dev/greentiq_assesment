@@ -7,6 +7,7 @@ import { LayoutDashboardIcon, UsersIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SignOutButton } from "@/features/auth/components/SignOutButton";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 export type SidebarUser = {
   name: string;
@@ -90,6 +91,7 @@ export function AppSidebar({
           </div>
         </div>
 
+        <ThemeToggle />
         <SignOutButton className="w-full justify-center" />
       </div>
     </div>
