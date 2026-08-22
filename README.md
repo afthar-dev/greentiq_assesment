@@ -106,19 +106,15 @@ explicit promise exposed a bug worth remembering: Postgres sorts NULLs first on
 `DESC`, so never-contacted customers were topping "most recently contacted".
 The query builder now pins nulls last.
 
+**Debouncing is implemented in search**
+
+Dark mode done.
+
 ## Known limitations
 
-- **Phone filter matches the stored string.** `555` works, `5551234567` won't
-  match `+1 (555) 123-4567`. Proper fix is a normalised `phoneDigits` column.
-- **"Recent Contacts" drifts.** It stores an absolute date computed at seed
-  time. Re-seeding refreshes it; the real fix is a relative marker resolved at
-  apply time.
-- **Email sorting isn't exposed.** The API supports it; the select offers name
+
+- **Email sorting isn't exposed.** The select offers name
   and last contact only.
-- **No committed tests.** Everything was verified against the real database
-  with throwaway scripts — filter composition, pagination boundaries, date
-  ranges, import round-trips, reorder persistence. `buildCustomerWhere` is pure
-  and is the obvious first thing to cover with Vitest.
 - **`npm audit` flags `exceljs` → `uuid` (moderate).** Not on any path used
   here. Chosen over `xlsx`, which is pinned at 0.18.5 with unpatched
   prototype-pollution and ReDoS advisories.
