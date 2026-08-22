@@ -106,6 +106,9 @@ explicit promise exposed a bug worth remembering: Postgres sorts NULLs first on
 `DESC`, so never-contacted customers were topping "most recently contacted".
 The query builder now pins nulls last.
 
+**Debouncing is implemented in search**
+** Dark mode done **
+
 ## Known limitations
 
 
