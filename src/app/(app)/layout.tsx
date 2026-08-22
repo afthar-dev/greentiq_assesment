@@ -1,5 +1,5 @@
-import { requireSession } from "@/lib/auth-guard";
-import { AppShell } from "@/components/custom/Appshell";
+import { requireSession } from "@/features/auth/lib/auth-guard";
+import { AppShell } from "@/components/layout/AppShell";
 
 /**
  * Layout for every authenticated route.

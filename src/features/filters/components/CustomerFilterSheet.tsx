@@ -4,11 +4,18 @@ import { useQuery } from "@tanstack/react-query";
 import { CheckIcon, ChevronsUpDownIcon, FilterIcon } from "lucide-react";
 
 import type { CustomerStatus } from "@/generated/prisma/client";
-import { getCompanies } from "@/app/actions/customerActions";
+import {
+  countActiveFilters,
+  type CustomerFilters,
+} from "@/features/filters/lib/filters";
+import { getCompanies } from "@/features/customers/actions/customer-actions";
 import { customerKeys } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
-import { CUSTOMER_STATUSES, STATUS_LABELS } from "@/lib/validations/customer";
-import { SavedFilters } from "@/components/custom/SavedFilters";
+import {
+  CUSTOMER_STATUSES,
+  STATUS_LABELS,
+} from "@/features/customers/schemas/customer";
+import { SavedFilters } from "@/features/filters/components/SavedFilters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -36,38 +43,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-
-export type CustomerFilters = {
-  status: CustomerStatus[];
-  company: string[];
-  dateFrom: string;
-  dateTo: string;
-  phone: string;
-  email: string;
-};
-
-export const EMPTY_FILTERS: CustomerFilters = {
-  status: [],
-  company: [],
-  dateFrom: "",
-  dateTo: "",
-  phone: "",
-  email: "",
-};
-
-/**
- * How many filter *groups* are active, not how many values are selected.
- * Three statuses ticked is one active filter to the user, not three.
- */
-export function countActiveFilters(filters: CustomerFilters): number {
-  return (
-    (filters.status.length > 0 ? 1 : 0) +
-    (filters.company.length > 0 ? 1 : 0) +
-    (filters.dateFrom || filters.dateTo ? 1 : 0) +
-    (filters.phone ? 1 : 0) +
-    (filters.email ? 1 : 0)
-  );
-}
 
 function CompanyPicker({
   selected,

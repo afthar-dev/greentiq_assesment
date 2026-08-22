@@ -3,10 +3,12 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 
 import {
+  ALLOW_ALL_ENV_VAR,
   ALLOWLIST_ENV_VAR,
   getAllowlist,
   isEmailAllowed,
-} from "@/lib/auth-allowlist";
+  isOpenSignupEnabled,
+} from "@/features/auth/lib/allowlist";
 import { prisma } from "@/lib/prisma";
 
 function requireEnv(name: string): string {
@@ -21,9 +23,16 @@ function requireEnv(name: string): string {
   return value;
 }
 
-// An empty allowlist locks out every account, so say so at boot rather than
-// as an opaque "access denied" mid-OAuth.
-if (process.env.NODE_ENV !== "production" && getAllowlist().length === 0) {
+// Both modes are easy to misconfigure in ways that only show up mid-OAuth,
+// so say which one is active at boot.
+if (isOpenSignupEnabled()) {
+  console.warn(
+    `[auth] ${ALLOW_ALL_ENV_VAR} is on — any Google account can sign in.`,
+  );
+} else if (
+  process.env.NODE_ENV !== "production" &&
+  getAllowlist().length === 0
+) {
   console.warn(
     `[auth] ${ALLOWLIST_ENV_VAR} is empty — all sign-ins will be rejected.`,
   );
@@ -49,11 +58,6 @@ export const auth = betterAuth({
   },
 
   user: {
-    /**
-     * Authorisation gate. Because this app is OAuth-only it runs on every
-     * sign-in, not just first registration, so removing an address from the
-     * allowlist revokes access immediately.
-     */
     validateUserInfo: ({ user }) => {
       if (!isEmailAllowed(user.email)) {
         return {
@@ -76,5 +80,3 @@ export const auth = betterAuth({
   // Must stay last: lets route handlers and server actions set auth cookies.
   plugins: [nextCookies()],
 });
-
-export type Session = typeof auth.$Infer.Session;

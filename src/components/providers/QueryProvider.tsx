@@ -4,9 +4,9 @@ import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
-  // Created in state rather than at module scope: a module-level client would
-  // be shared across requests on the server and leak one user's data into
-  // another's cache.
+  // In state, not at module scope. A module-level client is shared across
+  // requests on the server, which would leak one user's data into another's
+  // cache.
   const [queryClient] = useState(
     () =>
       new QueryClient({

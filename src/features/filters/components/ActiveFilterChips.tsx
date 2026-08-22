@@ -2,8 +2,8 @@
 
 import { XIcon } from "lucide-react";
 
-import { STATUS_LABELS } from "@/lib/validations/customer";
-import type { CustomerFilters } from "@/components/custom/CustomerFilterSheet";
+import { STATUS_LABELS } from "@/features/customers/schemas/customer";
+import type { CustomerFilters } from "@/features/filters/lib/filters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 

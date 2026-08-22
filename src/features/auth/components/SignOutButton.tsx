@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { LogOutIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { signOut } from "@/lib/auth-client";
+import { signOut } from "@/features/auth/lib/auth-client";
 import { Button } from "@/components/ui/button";
 
 export function SignOutButton({ className }: { className?: string }) {

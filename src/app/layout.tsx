@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-import { QueryProvider } from "@/components/custom/QueryProvider";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 import { Toaster } from "@/components/ui/sonner";
 
 // globals.css maps --font-sans / --font-geist-mono into the Tailwind theme,

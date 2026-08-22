@@ -3,25 +3,25 @@
 import { revalidatePath } from "next/cache";
 import { CustomerStatus, type Customer } from "@/generated/prisma/client";
 
-import { getAuthorizedSession } from "@/lib/auth-guard";
+import { getAuthorizedSession } from "@/features/auth/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 import {
   buildCustomerOrderBy,
   buildCustomerPagination,
   buildCustomerWhere,
-} from "@/lib/customer-query";
+} from "@/features/customers/lib/customer-query";
 import {
   customerIdSchema,
   customerInputSchema,
   customerUpdateSchema,
   type CustomerInput,
   type CustomerUpdateInput,
-} from "@/lib/validations/customer";
+} from "@/features/customers/schemas/customer";
 import {
   customerQuerySchema,
   type CustomerQueryInput,
   type PaginatedCustomers,
-} from "@/lib/validations/customer-query";
+} from "@/features/customers/schemas/customer-query";
 import { startOfWeek } from "date-fns";
 
 export type ActionResult<T> =
@@ -42,9 +42,7 @@ function isPrismaError(error: unknown, code: string): boolean {
   );
 }
 
-/**
-Auth Guard
- */
+/** Requires the user to be signed in. */
 async function requireAuth(): Promise<ActionResult<true>> {
   const session = await getAuthorizedSession();
 

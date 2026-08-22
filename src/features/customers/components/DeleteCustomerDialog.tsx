@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import type { Customer } from "@/generated/prisma/client";
-import { deleteCustomer } from "@/app/actions/customerActions";
+import { deleteCustomer } from "@/features/customers/actions/customer-actions";
 import { customerKeys } from "@/lib/query-keys";
 import {
   AlertDialog,

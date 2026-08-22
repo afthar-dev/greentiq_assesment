@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AlertCircleIcon, Loader2Icon } from "lucide-react";
 
-import { signIn } from "@/lib/auth-client";
+import { signIn } from "@/features/auth/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import {
   Card,

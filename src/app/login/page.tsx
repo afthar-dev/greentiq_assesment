@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 
-import { LoginCard } from "@/components/custom/LoginCard";
+import { LoginCard } from "@/features/auth/components/LoginCard";
 
 export const metadata: Metadata = {
   title: "Sign in · CRM Dashboard",

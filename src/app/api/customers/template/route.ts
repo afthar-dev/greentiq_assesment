@@ -1,11 +1,11 @@
 import ExcelJS from "exceljs";
 
-import { getAuthorizedSession } from "@/lib/auth-guard";
+import { getAuthorizedSession } from "@/features/auth/lib/auth-guard";
 import {
   IMPORT_COLUMNS,
   IMPORT_SHEET_NAME,
   STATUS_OPTIONS_TEXT,
-} from "@/lib/customer-import";
+} from "@/features/customers/lib/import-columns";
 
 /**
  * Generates the reference workbook for bulk import.

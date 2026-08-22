@@ -1,15 +1,11 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { isEmailAllowed } from "@/lib/auth-allowlist";
-import { auth } from "@/lib/auth";
+import { isEmailAllowed } from "@/features/auth/lib/allowlist";
+import { auth } from "@/features/auth/lib/auth";
 
 /**
  * Authoritative session checks.
- *
- * The proxy only sees a cookie, which is fast but not proof of a valid
- * session. Protected pages and API routes verify here instead, and re-apply
- * the allowlist so revoking access does not wait for the session to expire.
  */
 
 export async function getSession() {

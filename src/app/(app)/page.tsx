@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import { AlertCircleIcon } from "lucide-react";
 
-import { getDashboardStats } from "@/app/actions/customerActions";
-import { requireSession } from "@/lib/auth-guard";
+import { getDashboardStats } from "@/features/customers/actions/customer-actions";
+import { requireSession } from "@/features/auth/lib/auth-guard";
 import {
   Card,
   CardContent,

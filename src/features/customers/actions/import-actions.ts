@@ -3,7 +3,7 @@
 import ExcelJS from "exceljs";
 import { revalidatePath } from "next/cache";
 
-import { getAuthorizedSession } from "@/lib/auth-guard";
+import { getAuthorizedSession } from "@/features/auth/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 import {
   IMPORT_COLUMNS,
@@ -12,9 +12,9 @@ import {
   normaliseStatus,
   type ImportRowError,
   type ImportSummary,
-} from "@/lib/customer-import";
-import { customerInputSchema } from "@/lib/validations/customer";
-import type { ActionResult } from "@/app/actions/customerActions";
+} from "@/features/customers/lib/import-columns";
+import { customerInputSchema } from "@/features/customers/schemas/customer";
+import type { ActionResult } from "@/features/customers/actions/customer-actions";
 
 const XLSX_MIME =
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -49,13 +49,12 @@ function cellToString(value: ExcelJS.CellValue): string {
 /**
  * Bulk import from an .xlsx workbook.
  *
- * Parsing happens on the server: a client-side parser would mean trusting rows
- * the browser assembled, and the same zod schema that guards the form has to
- * guard this path too.
+ * Parsing runs on the server so the rows go through the same schema as the
+ * form — a browser-side parser would mean trusting whatever the client sent.
  *
- * Valid rows import even when others fail — a 200-row sheet with one bad phone
- * number should not be rejected wholesale. Rows whose email already exists are
- * skipped and reported rather than overwritten.
+ * Partial success is deliberate: one bad phone number shouldn't reject a
+ * 200-row sheet. Emails that already exist are skipped and listed, never
+ * overwritten.
  */
 export async function importCustomers(
   formData: FormData,
@@ -83,8 +82,6 @@ export async function importCustomers(
     };
   }
 
-  // Extension is checked as well as MIME: browsers report inconsistent types
-  // for .xlsx, and neither alone is reliable.
   const isXlsx =
     file.name.toLowerCase().endsWith(".xlsx") ||
     file.type === XLSX_MIME ||

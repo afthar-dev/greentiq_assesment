@@ -1,11 +1,9 @@
-import type { CustomerQueryInput } from "@/lib/validations/customer-query";
+import type { CustomerQueryInput } from "@/features/customers/schemas/customer-query";
 
 /**
- * Query key factory.
- *
- * Centralised so invalidation cannot drift from the keys it is meant to
- * match: `customerKeys.all` invalidates every list and detail at once, while
- * a single list key stays specific to its filters.
+ * Query keys in one place, so invalidation can't drift from the keys it's
+ * meant to match. `all` clears every list and detail at once; `list(query)`
+ * stays specific to its filters.
  */
 export const customerKeys = {
   all: ["customers"] as const,

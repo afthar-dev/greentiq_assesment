@@ -8,7 +8,10 @@ import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 import type { Customer } from "@/generated/prisma/client";
-import { createCustomer, updateCustomer } from "@/app/actions/customerActions";
+import {
+  createCustomer,
+  updateCustomer,
+} from "@/features/customers/actions/customer-actions";
 import { customerKeys } from "@/lib/query-keys";
 import {
   CUSTOMER_STATUSES,
@@ -16,7 +19,7 @@ import {
   customerInputSchema,
   type CustomerInput,
   type CustomerValues,
-} from "@/lib/validations/customer";
+} from "@/features/customers/schemas/customer";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

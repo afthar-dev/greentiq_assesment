@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { CustomerTable } from "@/components/custom/CustomerTable";
+import { CustomerTable } from "@/features/customers/components/CustomerTable";
 
 export const metadata: Metadata = {
   title: "Customers · CRM Dashboard",

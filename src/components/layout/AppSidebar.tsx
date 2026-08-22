@@ -6,7 +6,7 @@ import { LayoutDashboardIcon, UsersIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { SignOutButton } from "@/components/custom/SignOutButton";
+import { SignOutButton } from "@/features/auth/components/SignOutButton";
 
 export type SidebarUser = {
   name: string;
@@ -52,8 +52,6 @@ export function AppSidebar({
 
       <nav className="flex flex-col gap-1">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          // "/" would match every route with startsWith, so it needs an
-          // exact check while nested routes stay highlighted on their children.
           const isActive =
             href === "/" ? pathname === "/" : pathname.startsWith(href);
 

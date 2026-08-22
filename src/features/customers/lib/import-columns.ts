@@ -1,5 +1,5 @@
 import { CustomerStatus } from "@/generated/prisma/client";
-import { STATUS_LABELS } from "@/lib/validations/customer";
+import { STATUS_LABELS } from "@/features/customers/schemas/customer";
 
 /**
  * Column contract for bulk import.

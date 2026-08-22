@@ -1,17 +1,13 @@
 import type { Prisma } from "@/generated/prisma/client";
 
-import type { CustomerQuery } from "@/lib/validations/customer-query";
+import type { CustomerQuery } from "@/features/customers/schemas/customer-query";
 
 /**
- * Translates a validated query into Prisma arguments.
+ * Turns a validated query into Prisma arguments.
  *
- * Kept pure and database-free so the filter logic — the part the brief calls
- * out as critical — can be tested directly, without a connection or a running
- * server.
- *
- * Every clause is additive: the conditions in `AND` compose, so search and
- * all five filters narrow the result together rather than overriding one
- * another.
+ * No database access in here, so the filter logic can be tested on its own.
+ * Conditions are pushed into a single AND, which is what makes search and the
+ * five filters narrow together instead of overriding each other.
  */
 export function buildCustomerWhere(
   query: CustomerQuery,

@@ -13,7 +13,7 @@ import { CustomerStatus } from "@/generated/prisma/client";
 
 export const PAGE_SIZES = [10, 25, 50] as const;
 
-export const SORT_FIELDS = [
+const SORT_FIELDS = [
   "name",
   "email",
   "company",

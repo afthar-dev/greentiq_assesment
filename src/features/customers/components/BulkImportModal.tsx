@@ -12,13 +12,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { importCustomers } from "@/app/actions/importActions";
+import { importCustomers } from "@/features/customers/actions/import-actions";
 import {
   MAX_IMPORT_BYTES,
   MAX_IMPORT_ROWS,
   STATUS_OPTIONS_TEXT,
   type ImportSummary,
-} from "@/lib/customer-import";
+} from "@/features/customers/lib/import-columns";
 import { customerKeys } from "@/lib/query-keys";
 import { Button } from "@/components/ui/button";
 import {

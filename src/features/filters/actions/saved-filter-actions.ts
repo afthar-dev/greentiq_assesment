@@ -1,8 +1,10 @@
 "use server";
 
+import { z } from "zod";
+
 import type { SavedFilter } from "@/generated/prisma/client";
 
-import { getAuthorizedSession } from "@/lib/auth-guard";
+import { getAuthorizedSession } from "@/features/auth/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 import {
   EMPTY_CRITERIA,
@@ -11,8 +13,8 @@ import {
   savedFilterInputSchema,
   type FilterCriteria,
   type SavedFilterInput,
-} from "@/lib/validations/saved-filter";
-import type { ActionResult } from "@/app/actions/customerActions";
+} from "@/features/filters/schemas/saved-filter";
+import type { ActionResult } from "@/features/customers/actions/customer-actions";
 
 /** A saved filter with its JSON criteria already parsed and validated. */
 export type SavedFilterView = {
@@ -47,10 +49,9 @@ async function requireAuth(): Promise<ActionResult<true>> {
 }
 
 /**
- * Parses a stored row defensively.
- *
- * safeParse rather than parse: one row written by an older version of the app
- * should degrade to an empty filter, not take the whole panel down.
+ * safeParse, not parse. The criteria column is JSON, so a row written by an
+ * older version should degrade to an empty filter rather than throwing and
+ * taking the whole panel with it.
  */
 function toView(row: SavedFilter): SavedFilterView {
   const parsed = filterCriteriaSchema.safeParse(row.criteria);
@@ -72,11 +73,53 @@ export async function getSavedFilters(): Promise<
   if (!auth.ok) return auth;
 
   const rows = await prisma.savedFilter.findMany({
-    // Templates first, then user filters, each in their stored drag order.
-    orderBy: [{ isTemplate: "desc" }, { position: "asc" }, { name: "asc" }],
+    // Ordered purely by the stored drag order, so a template can be moved
+    // below a user filter. `name` only breaks ties on equal positions.
+    orderBy: [{ position: "asc" }, { name: "asc" }],
   });
 
   return { ok: true, data: rows.map(toView) };
+}
+
+/**
+ * Saves the order produced by dragging.
+ *
+ * One transaction: a partial write leaves duplicate or gapped positions, and
+ * the list comes back scrambled on the next read.
+ */
+export async function reorderSavedFilters(
+  orderedIds: string[],
+): Promise<ActionResult<{ count: number }>> {
+  const auth = await requireAuth();
+  if (!auth.ok) return auth;
+
+  const parsed = z.array(savedFilterIdSchema).min(1).safeParse(orderedIds);
+
+  if (!parsed.success) {
+    return { ok: false, error: "Invalid filter order." };
+  }
+
+  const ids = parsed.data;
+
+  // The client must send the complete list. A partial one would renumber a
+  // subset into positions that collide with the filters it left out.
+  const known = await prisma.savedFilter.findMany({ select: { id: true } });
+  const knownIds = new Set(known.map((row) => row.id));
+
+  if (ids.length !== knownIds.size || ids.some((id) => !knownIds.has(id))) {
+    return {
+      ok: false,
+      error: "That order is out of date. Refresh and try again.",
+    };
+  }
+
+  await prisma.$transaction(
+    ids.map((id, index) =>
+      prisma.savedFilter.update({ where: { id }, data: { position: index } }),
+    ),
+  );
+
+  return { ok: true, data: { count: ids.length } };
 }
 
 export async function createSavedFilter(
@@ -113,7 +156,6 @@ export async function createSavedFilter(
 
   // New filters go to the end of the list.
   const last = await prisma.savedFilter.findFirst({
-    where: { isTemplate: false },
     orderBy: { position: "desc" },
     select: { position: true },
   });

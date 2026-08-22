@@ -14,25 +14,25 @@ import {
 } from "lucide-react";
 
 import type { Customer } from "@/generated/prisma/client";
-import { getCustomers } from "@/app/actions/customerActions";
-import { useDebounce } from "@/app/hooks/useDebounceHook";
+import { getCustomers } from "@/features/customers/actions/customer-actions";
+import { useDebounce } from "@/hooks/use-debounce";
 import { customerKeys } from "@/lib/query-keys";
-import { STATUS_LABELS } from "@/lib/validations/customer";
+import { STATUS_LABELS } from "@/features/customers/schemas/customer";
 import {
   PAGE_SIZES,
   type CustomerQueryInput,
-} from "@/lib/validations/customer-query";
-import { ActiveFilterChips } from "@/components/custom/ActiveFilterChips";
-import { BulkImportModal } from "@/components/custom/BulkImportModal";
-import { CustomerDetailModal } from "@/components/custom/CustomerDetailModal";
+} from "@/features/customers/schemas/customer-query";
+import { ActiveFilterChips } from "@/features/filters/components/ActiveFilterChips";
+import { BulkImportModal } from "@/features/customers/components/BulkImportModal";
+import { CustomerDetailModal } from "@/features/customers/components/CustomerDetailModal";
+import { CustomerFilterSheet } from "@/features/filters/components/CustomerFilterSheet";
 import {
-  CustomerFilterSheet,
   EMPTY_FILTERS,
   type CustomerFilters,
-} from "@/components/custom/CustomerFilterSheet";
-import { CustomerFormModal } from "@/components/custom/CustomerFormModal";
-import { STATUS_STYLES } from "@/components/custom/customer-status";
-import { DeleteCustomerDialog } from "@/components/custom/DeleteCustomerDialog";
+} from "@/features/filters/lib/filters";
+import { CustomerFormModal } from "@/features/customers/components/CustomerFormModal";
+import { STATUS_STYLES } from "@/features/customers/lib/customer-status";
+import { DeleteCustomerDialog } from "@/features/customers/components/DeleteCustomerDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,6 +76,47 @@ const SORT_OPTIONS = [
 ] as const;
 
 type SortValue = (typeof SORT_OPTIONS)[number]["value"];
+
+function RowActions({
+  customer,
+  onEdit,
+  onDelete,
+  className,
+}: {
+  customer: Customer;
+  onEdit: () => void;
+  onDelete: () => void;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label={`Edit ${customer.name}`}
+        onClick={(event) => {
+          // The row/card opens the detail modal, so these have to stop the
+          // click reaching it.
+          event.stopPropagation();
+          onEdit();
+        }}
+      >
+        <PencilIcon />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label={`Delete ${customer.name}`}
+        onClick={(event) => {
+          event.stopPropagation();
+          onDelete();
+        }}
+      >
+        <Trash2Icon />
+      </Button>
+    </div>
+  );
+}
 
 export function CustomerTable() {
   const [search, setSearch] = useState("");
@@ -211,8 +252,9 @@ export function CustomerTable() {
         onClear={() => applyFilters(EMPTY_FILTERS)}
       />
 
-      <div className="rounded-lg border">
-        <div className="overflow-x-auto">
+      <div className="overflow-hidden rounded-lg border">
+        {/* Desktop: dense table. Below md it is replaced by the card list. */}
+        <div className="hidden overflow-x-auto md:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -284,38 +326,110 @@ export function CustomerTable() {
                           : "—"}
                       </TableCell>
                       <TableCell>
-                        <div className="flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label={`Edit ${customer.name}`}
-                            onClick={(event) => {
-                              // The row opens the detail modal, so row-level
-                              // actions have to stop the click there.
-                              event.stopPropagation();
-                              setEditing(customer);
-                              setFormOpen(true);
-                            }}
-                          >
-                            <PencilIcon />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label={`Delete ${customer.name}`}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setDeleting(customer);
-                            }}
-                          >
-                            <Trash2Icon />
-                          </Button>
-                        </div>
+                        <RowActions
+                          customer={customer}
+                          onEdit={() => {
+                            setEditing(customer);
+                            setFormOpen(true);
+                          }}
+                          onDelete={() => setDeleting(customer)}
+                          className="flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
             </TableBody>
           </Table>
+        </div>
+
+        {/*
+          Mobile: one card per customer. A seven-column table on a phone means
+          scrolling sideways to read a single record, so the same data is
+          stacked instead. Actions stay visible rather than appearing on hover,
+          which touch devices do not have.
+        */}
+        <div className="divide-y md:hidden">
+          {isPending
+            ? Array.from({ length: Math.min(pageSize, 5) }).map((_, index) => (
+                <div key={index} className="flex flex-col gap-2 p-3">
+                  <Skeleton className="h-4 w-2/5" />
+                  <Skeleton className="h-3 w-3/5" />
+                  <Skeleton className="h-3 w-1/3" />
+                </div>
+              ))
+            : rows.map((customer) => (
+                <div
+                  key={customer.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setViewing(customer)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") setViewing(customer);
+                  }}
+                  className="flex w-full min-w-0 flex-col gap-2 p-3 text-left active:bg-muted/50"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{customer.name}</p>
+                      <p className="truncate text-sm text-muted-foreground">
+                        {customer.company}
+                      </p>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={`${STATUS_STYLES[customer.status]} max-w-[45%] shrink-0 truncate`}
+                    >
+                      {STATUS_LABELS[customer.status]}
+                    </Badge>
+                  </div>
+
+                  {/*
+                    min-w-0 on every value cell: a flex child defaults to
+                    min-width:auto, so it refuses to shrink below its content
+                    and a long email pushes the card wider than the screen.
+                    Values wrap rather than truncate — on a card there is room
+                    for a second line, and a hidden email is useless.
+                  */}
+                  <dl className="grid gap-1 text-sm">
+                    <div className="flex gap-2">
+                      <dt className="w-[4.5rem] shrink-0 text-muted-foreground">
+                        Email
+                      </dt>
+                      <dd className="min-w-0 flex-1 break-all">
+                        {customer.email}
+                      </dd>
+                    </div>
+                    <div className="flex gap-2">
+                      <dt className="w-[4.5rem] shrink-0 text-muted-foreground">
+                        Phone
+                      </dt>
+                      <dd className="min-w-0 flex-1 break-words tabular-nums">
+                        {customer.phone}
+                      </dd>
+                    </div>
+                    <div className="flex gap-2">
+                      <dt className="w-[4.5rem] shrink-0 text-muted-foreground">
+                        Contacted
+                      </dt>
+                      <dd className="min-w-0 flex-1 tabular-nums">
+                        {customer.lastContactAt
+                          ? format(customer.lastContactAt, "d MMM yyyy")
+                          : "Never"}
+                      </dd>
+                    </div>
+                  </dl>
+
+                  <RowActions
+                    customer={customer}
+                    onEdit={() => {
+                      setEditing(customer);
+                      setFormOpen(true);
+                    }}
+                    onDelete={() => setDeleting(customer)}
+                    className="flex justify-end gap-1"
+                  />
+                </div>
+              ))}
         </div>
 
         {isError ? (

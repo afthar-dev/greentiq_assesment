@@ -16,10 +16,13 @@ import {
 import { toast } from "sonner";
 
 import type { Customer } from "@/generated/prisma/client";
-import { getCustomer, touchLastContact } from "@/app/actions/customerActions";
+import {
+  getCustomer,
+  touchLastContact,
+} from "@/features/customers/actions/customer-actions";
 import { customerKeys } from "@/lib/query-keys";
-import { STATUS_LABELS } from "@/lib/validations/customer";
-import { STATUS_STYLES } from "@/components/custom/customer-status";
+import { STATUS_LABELS } from "@/features/customers/schemas/customer";
+import { STATUS_STYLES } from "@/features/customers/lib/customer-status";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -76,11 +79,7 @@ export function CustomerDetailModal({
   const queryClient = useQueryClient();
   const id = customer?.id;
 
-  /**
-   * Seeded with the row already in hand so the modal opens with content
-   * instead of a spinner, then refetched in the background — the list row may
-   * be up to staleTime old, and this is the screen where being wrong shows.
-   */
+  // Re-fetch the customer when the ID changes
   const { data, isError, error } = useQuery({
     queryKey: customerKeys.detail(id ?? ""),
     queryFn: async () => {

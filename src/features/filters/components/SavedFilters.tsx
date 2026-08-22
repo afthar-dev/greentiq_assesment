@@ -2,17 +2,38 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BookmarkIcon, Loader2Icon, LockIcon, Trash2Icon } from "lucide-react";
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  restrictToParentElement,
+  restrictToVerticalAxis,
+} from "@dnd-kit/modifiers";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { BookmarkIcon, Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 import {
   createSavedFilter,
   deleteSavedFilter,
   getSavedFilters,
+  reorderSavedFilters,
   type SavedFilterView,
-} from "@/app/actions/savedFilterActions";
+} from "@/features/filters/actions/saved-filter-actions";
 import { customerKeys } from "@/lib/query-keys";
-import type { CustomerFilters } from "@/components/custom/CustomerFilterSheet";
+import type { CustomerFilters } from "@/features/filters/lib/filters";
+import { SortableFilterRow } from "@/features/filters/components/SortableFilterRow";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -172,6 +193,71 @@ export function SavedFilters({
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      // Each row is also a button that applies the filter. Without a small
+      // movement threshold dnd-kit claims the click and applying stops working.
+      activationConstraint: { distance: 5 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const reorder = useMutation({
+    mutationFn: async (orderedIds: string[]) => {
+      const result = await reorderSavedFilters(orderedIds);
+      if (!result.ok) throw new Error(result.error);
+      return result.data;
+    },
+    // Optimistic: the row has to stay where it was dropped. Waiting for the
+    // round trip makes it snap back first, which reads as a bug.
+    onMutate: async (orderedIds) => {
+      await queryClient.cancelQueries({
+        queryKey: customerKeys.savedFilters(),
+      });
+
+      const previous = queryClient.getQueryData<SavedFilterView[]>(
+        customerKeys.savedFilters(),
+      );
+
+      if (previous) {
+        const byId = new Map(previous.map((item) => [item.id, item]));
+        queryClient.setQueryData(
+          customerKeys.savedFilters(),
+          orderedIds
+            .map((id) => byId.get(id))
+            .filter((item): item is SavedFilterView => Boolean(item)),
+        );
+      }
+
+      return { previous };
+    },
+    onError: (error: Error, _ids, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(customerKeys.savedFilters(), context.previous);
+      }
+      toast.error(error.message || "Could not save the new order");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: customerKeys.savedFilters() });
+    },
+  });
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    // Dropped outside the list, or back where it started.
+    if (!over || active.id === over.id) return;
+
+    const from = saved.findIndex((item) => item.id === active.id);
+    const to = saved.findIndex((item) => item.id === over.id);
+
+    if (from === -1 || to === -1) return;
+
+    reorder.mutate(arrayMove(saved, from, to).map((item) => item.id));
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
@@ -192,47 +278,34 @@ export function SavedFilters({
           No saved filters yet.
         </p>
       ) : (
-        <ul className="flex flex-col gap-1">
-          {saved.map((item) => (
-            <li key={item.id}>
-              <div className="group flex items-center gap-1 rounded-md border border-transparent hover:border-border hover:bg-muted/50">
-                <button
-                  type="button"
-                  // Applying replaces the current filters outright rather than
-                  // merging: a saved filter describes a complete view, and
-                  // merging would silently produce a set the user never saved.
-                  onClick={() => onApply(item.criteria)}
-                  className="flex min-w-0 flex-1 flex-col items-start px-2.5 py-1.5 text-left"
-                >
-                  <span className="flex w-full items-center gap-1.5 truncate text-sm">
-                    {item.name}
-                    {item.isTemplate ? (
-                      <LockIcon className="size-3 shrink-0 text-muted-foreground" />
-                    ) : null}
-                  </span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    {item.corrupt
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={saved.map((item) => item.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <ul className="flex flex-col gap-1">
+              {saved.map((item) => (
+                <SortableFilterRow
+                  key={item.id}
+                  filter={item}
+                  description={
+                    item.corrupt
                       ? "Unreadable — will clear filters"
-                      : describe(item.criteria)}
-                  </span>
-                </button>
-
-                {item.isTemplate ? null : (
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`Delete ${item.name}`}
-                    className="mr-1 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-                    disabled={remove.isPending}
-                    onClick={() => remove.mutate(item.id)}
-                  >
-                    <Trash2Icon />
-                  </Button>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
+                      : describe(item.criteria)
+                  }
+                  onApply={() => onApply(item.criteria)}
+                  onDelete={() => remove.mutate(item.id)}
+                  deleteDisabled={remove.isPending}
+                />
+              ))}
+            </ul>
+          </SortableContext>
+        </DndContext>
       )}
     </div>
   );
