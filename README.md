@@ -108,7 +108,7 @@ The query builder now pins nulls last.
 
 **Debouncing is implemented in search**
 
-** Dark mode done.**
+Dark mode done.
 
 ## Known limitations
 
