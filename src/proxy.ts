@@ -1,14 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 
-/**
- * Route gate. Next.js 16 renamed `middleware` to `proxy`: this file must be
- * src/proxy.ts and export a function named `proxy`.
- *
- * Optimistic by design — it only asks whether a session cookie is present,
- * which is cheap enough for every request but is not proof of a valid session.
- * requireSession() in src/lib/auth-guard.ts is the real boundary.
- */
+//  Proxy middleware to redirect users based on their
+//  authentication status and the requested route.
+
 const PUBLIC_ROUTES = ["/login"];
 
 export function proxy(request: NextRequest) {

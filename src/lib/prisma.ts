@@ -7,16 +7,12 @@ import { PrismaClient } from "@/generated/prisma/client";
  * endpoint so serverless invocations reuse PgBouncer connections rather than
  * opening a new Postgres connection per request. Migrations use DIRECT_URL
  * instead — see prisma.config.ts.
- *
- * Cached on globalThis so dev hot-reloads do not leak a pool per edit.
  */
 const createPrismaClient = () => {
   const connectionString = process.env.DATABASE_URL;
 
   if (!connectionString) {
-    throw new Error(
-      "DATABASE_URL is not set. Copy .env.example to .env and fill in your Neon connection strings.",
-    );
+    throw new Error("Database connection failed");
   }
 
   return new PrismaClient({
