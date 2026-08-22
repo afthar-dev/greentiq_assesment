@@ -1,51 +1,43 @@
-import { headers } from "next/headers"
-import { redirect } from "next/navigation"
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-import { isEmailAllowed } from "@/lib/auth-allowlist"
-import { auth } from "@/lib/auth"
+import { isEmailAllowed } from "@/lib/auth-allowlist";
+import { auth } from "@/lib/auth";
 
 /**
- * Authoritative, server-side session check.
+ * Authoritative session checks.
  *
- * The middleware only inspects the session cookie, which is fast but
- * optimistic — a cookie's presence is not proof of a valid session. Every
- * protected page and API route calls through here for the real verification.
+ * The proxy only sees a cookie, which is fast but not proof of a valid
+ * session. Protected pages and API routes verify here instead, and re-apply
+ * the allowlist so revoking access does not wait for the session to expire.
  */
+
 export async function getSession() {
-  return auth.api.getSession({ headers: await headers() })
+  return auth.api.getSession({ headers: await headers() });
 }
 
-/**
- * Returns the session or redirects to /login.
- *
- * The allowlist is re-checked on every request rather than trusted from
- * sign-in time: without this, removing an address from AUTH_ALLOWED_EMAILS
- * would not take effect until that user's existing session expired.
- */
+/** Redirects to /login when unauthenticated. For pages. */
 export async function requireSession() {
-  const session = await getSession()
+  const session = await getSession();
 
   if (!session) {
-    redirect("/login")
+    redirect("/login");
   }
 
   if (!isEmailAllowed(session.user.email)) {
-    redirect("/login?error=email_not_allowed")
+    redirect("/login?error=email_not_allowed");
   }
 
-  return session
+  return session;
 }
 
-/**
- * API-route counterpart to requireSession: returns null instead of
- * redirecting, so handlers can answer with a 401 JSON body.
- */
+/** Returns null instead of redirecting, so handlers can answer 401. */
 export async function getAuthorizedSession() {
-  const session = await getSession()
+  const session = await getSession();
 
   if (!session || !isEmailAllowed(session.user.email)) {
-    return null
+    return null;
   }
 
-  return session
+  return session;
 }

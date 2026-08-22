@@ -1,31 +1,31 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { LogOutIcon } from "lucide-react"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { LogOutIcon } from "lucide-react";
 
-import { signOut } from "@/lib/auth-client"
-import { Button } from "@/components/ui/button"
+import { signOut } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
 
 export function SignOutButton() {
-  const router = useRouter()
-  const [isPending, setIsPending] = useState(false)
+  const router = useRouter();
+  const [isPending, setIsPending] = useState(false);
 
   async function handleSignOut() {
-    setIsPending(true)
+    setIsPending(true);
 
     await signOut({
       fetchOptions: {
         onSuccess: () => {
-          // refresh() clears the router cache so protected server components
-          // are not served from it after the session is gone.
-          router.push("/login")
-          router.refresh()
+          router.push("/login");
+          // Clears the router cache so protected pages are not served from it
+          // after the session is gone.
+          router.refresh();
         },
       },
-    })
+    });
 
-    setIsPending(false)
+    setIsPending(false);
   }
 
   return (
@@ -38,5 +38,5 @@ export function SignOutButton() {
       <LogOutIcon />
       {isPending ? "Signing out…" : "Sign out"}
     </Button>
-  )
+  );
 }

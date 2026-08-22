@@ -1,25 +1,25 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useSearchParams } from "next/navigation"
-import { AlertCircleIcon, Loader2Icon } from "lucide-react"
+import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { AlertCircleIcon, Loader2Icon } from "lucide-react";
 
-import { signIn } from "@/lib/auth-client"
-import { Button } from "@/components/ui/button"
+import { signIn } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 
 /** Error codes Better Auth can hand back on the failed-redirect URL. */
 const ERROR_MESSAGES: Record<string, string> = {
   email_not_allowed:
     "That account is not on the access list for this dashboard.",
   access_denied: "Sign-in was cancelled.",
-}
+};
 
 function GoogleIcon() {
   return (
@@ -41,36 +41,36 @@ function GoogleIcon() {
         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1a11 11 0 0 0-9.82 6.05l3.66 2.84c.87-2.6 3.3-4.51 6.16-4.51Z"
       />
     </svg>
-  )
+  );
 }
 
 export function LoginCard() {
-  const searchParams = useSearchParams()
-  const [isPending, setIsPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const searchParams = useSearchParams();
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const errorCode = searchParams.get("error")
-  const callbackURL = searchParams.get("callbackURL") ?? "/"
+  const errorCode = searchParams.get("error");
+  const callbackURL = searchParams.get("callbackURL") ?? "/";
   const message =
     error ??
     (errorCode
       ? (ERROR_MESSAGES[errorCode] ?? "Sign-in failed. Please try again.")
-      : null)
+      : null);
 
   async function handleSignIn() {
-    setIsPending(true)
-    setError(null)
+    setIsPending(true);
+    setError(null);
 
     const { error: signInError } = await signIn.social({
       provider: "google",
       callbackURL,
       errorCallbackURL: "/login",
-    })
+    });
 
     // On success the browser navigates to Google, so this only runs on failure.
     if (signInError) {
-      setError(signInError.message ?? "Could not reach Google. Try again.")
-      setIsPending(false)
+      setError(signInError.message ?? "Could not reach Google. Try again.");
+      setIsPending(false);
     }
   }
 
@@ -113,5 +113,5 @@ export function LoginCard() {
         </p>
       </CardContent>
     </Card>
-  )
+  );
 }

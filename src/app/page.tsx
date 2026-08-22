@@ -1,7 +1,13 @@
-import { requireSession } from "@/lib/auth-guard"
-import { SignOutButton } from "@/components/sign-out-button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { requireSession } from "@/lib/auth-guard";
+import { SignOutButton } from "@/components/sign-out-button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 function initials(name: string) {
   return name
@@ -9,12 +15,12 @@ function initials(name: string) {
     .map((part) => part[0])
     .slice(0, 2)
     .join("")
-    .toUpperCase()
+    .toUpperCase();
 }
 
 export default async function DashboardPage() {
-  // Authoritative check — the middleware only saw a cookie.
-  const { user } = await requireSession()
+  // Authoritative check — the proxy only saw a cookie.
+  const { user } = await requireSession();
 
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-4xl flex-col gap-6 p-6">
@@ -37,15 +43,16 @@ export default async function DashboardPage() {
         <CardHeader>
           <CardTitle>Signed in</CardTitle>
           <CardDescription>
-            Authentication is wired up. The CRM dashboard replaces this page next.
+            Authentication is wired up. The CRM dashboard replaces this page
+            next.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
           Every route except <code className="text-foreground">/login</code> is
-          gated by middleware, and each protected page re-verifies the session
-          against the database.
+          gated by the route proxy, and each protected page re-verifies the
+          session against the database.
         </CardContent>
       </Card>
     </main>
-  )
+  );
 }
