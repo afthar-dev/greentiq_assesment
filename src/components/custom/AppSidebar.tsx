@@ -6,7 +6,7 @@ import { LayoutDashboardIcon, UsersIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { SignOutButton } from "@/components/custom/sign-out-button";
+import { SignOutButton } from "@/components/custom/SignOutButton";
 
 export type SidebarUser = {
   name: string;
