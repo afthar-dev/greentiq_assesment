@@ -1,0 +1,56 @@
+// Prisma schema for the Advanced CRM Dashboard.
+// Two models: Customer (the CRM records) and SavedFilter (named filter
+// combinations, including the pre-built templates and their drag-and-drop order).
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CustomerStatus {
+  ACTIVE_CUSTOMER
+  PROSPECT
+  LEAD
+  INACTIVE_CUSTOMER
+  ARCHIVED
+}
+
+model Customer {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  phone         String
+  company       String
+  status        CustomerStatus @default(LEAD)
+  lastContactAt DateTime?
+  notes         String?
+  // Manual ordering slot, reserved for drag-and-drop reordering of the list.
+  position      Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // Indexes mirror the filter panel: every filterable/sortable column is covered.
+  @@index([status])
+  @@index([company])
+  @@index([lastContactAt])
+  @@index([name])
+  @@index([position])
+}
+
+model SavedFilter {
+  id         String   @id @default(cuid())
+  name       String
+  // Serialized filter criteria; shape is validated by zod at the API boundary.
+  criteria   Json
+  // Templates ship with the app and cannot be deleted by the user.
+  isTemplate Boolean  @default(false)
+  position   Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([position])
+}

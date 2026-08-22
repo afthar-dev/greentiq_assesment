@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# keep the example env in version control
+!.env.example
+
+# Prisma generated client (recreated by `prisma generate` on postinstall)
+/src/generated
+
+.early.coverage
